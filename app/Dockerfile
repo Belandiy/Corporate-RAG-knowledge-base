@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy frontend code
+# Copy everything (the docker-compose sets context to the root)
 COPY . /app
 
-CMD ["chainlit", "run", "app.py", "--host", "0.0.0.0", "--port", "8051"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

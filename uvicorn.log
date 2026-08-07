@@ -1,0 +1,11 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s]Loading weights:  47%|████▋     | 184/391 [00:00<00:00, 1832.43it/s]Loading weights:  95%|█████████▍| 370/391 [00:00<00:00, 1848.51it/s]Loading weights: 100%|██████████| 391/391 [00:00<00:00, 1872.53it/s]
+INFO:     Started server process [708642]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+Retrying llama_index.llms.openai.base.OpenAI._chat in 1 seconds as it raised APIConnectionError: Connection error..
+Retrying llama_index.llms.openai.base.OpenAI._chat in 1.22 seconds as it raised APIConnectionError: Connection error..
+Error searching Qdrant: [Errno 111] Connection refused
+Error generating LLM response: Connection error.
+INFO:     127.0.0.1:55292 - "POST /api/v1/query HTTP/1.1" 200 OK
