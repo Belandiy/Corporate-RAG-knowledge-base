@@ -19,11 +19,11 @@ ENV/
 !.env.example
 
 # Vector DB / Local Models / Cache
-data/
-storage/
-qdrant_storage/
-models/
-huggingface/
+/data/
+/storage/
+/qdrant_storage/
+/models/
+/huggingface/
 *.bin
 *.pt
 *.pth

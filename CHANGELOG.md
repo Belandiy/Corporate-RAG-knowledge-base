@@ -4,6 +4,7 @@
 
 ## [Unreleased]
 ### Added
+- Добавлена техническая документация (README.md) для всех подмодулей бэкенда: `app/api`, `app/core`, `app/services`, `app/models`.
 - Создана базовая структура папок и файлов микросервисов (`app`, `frontend`, `sync`).
 - Написана техническая документация (LLD) для каждого микросервиса (README.md в `app`, `sync`, `frontend`) с описанием Pydantic-схем, Payload для Qdrant и структуры ролей.
 - Добавлен корневой `.gitignore`.
