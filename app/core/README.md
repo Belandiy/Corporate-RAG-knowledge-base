@@ -5,8 +5,8 @@
 
 ## Ожидаемая структура
 * `__init__.py`
-* `config.py` — Парсинг переменных окружения с помощью `pydantic-settings` (API-ключи, URL векторной БД, названия моделей).
-* `llm.py` — Инициализация синглтонов (Singletone) для LlamaIndex, LLM (Qwen3) и Embeddings.
+* `config.py` — Парсинг переменных окружения с помощью `pydantic-settings` (API-ключи, URL векторной БД, хост и порт LM Studio API).
+* `llm.py` — Инициализация синглтонов для LlamaIndex. Подключение к локальной LLM (Qwen3) осуществляется через OpenAI-совместимый клиент, обращающийся к API LM Studio.
 * `prompts.py` — Строковые шаблоны или объекты для системных промптов (System Prompts, Context QA Templates).
 * `logger.py` — Настройки логирования (формат, уровни вывода, структурированные JSON-логи для продакшена).
 
