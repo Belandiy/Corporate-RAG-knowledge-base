@@ -1,0 +1,8 @@
+watchdog
+qdrant-client
+llama-index
+llama-index-embeddings-huggingface
+pdfplumber
+python-docx
+markdown
+python-dotenv

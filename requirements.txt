@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+qdrant-client
+llama-index
+llama-index-llms-openai
+llama-index-embeddings-huggingface
+python-dotenv
