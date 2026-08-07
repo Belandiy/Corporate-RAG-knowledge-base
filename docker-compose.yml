@@ -19,6 +19,12 @@ services:
       - QDRANT_PORT=6333
     depends_on:
       - qdrant
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
 
   web-ui:
     build:
@@ -29,7 +35,8 @@ services:
     environment:
       - API_URL=http://api:8000
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
   sync-agent:
     build:
@@ -41,7 +48,10 @@ services:
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
     depends_on:
-      - qdrant
+      api:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
 
 volumes:
   qdrant_data:
