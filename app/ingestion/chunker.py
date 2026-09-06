@@ -29,22 +29,33 @@ def chunk_text(text: str, ext: str = ".md") -> List[Dict[str, Any]]:
     )
 
     split_docs = text_splitter.split_documents(docs)
-    total_chunks = len(split_docs)
+    import re
+    has_alphanumeric = re.compile(r'[a-zA-Zа-яА-Я0-9]')
     
     final_chunks = []
-    for i, doc in enumerate(split_docs):
+    for doc in split_docs:
+        content = doc.page_content.strip()
+        
+        # Фильтрация мусорных чанков (менее 15 символов или без букв/цифр)
+        if len(content) < 15 or not has_alphanumeric.search(content):
+            continue
+            
         meta = doc.metadata.copy()
         # Собираем иерархию заголовков для Markdown
         hierarchy_parts = [v for k, v in meta.items() if str(k).startswith("Header")]
         hierarchy = " > ".join(hierarchy_parts) if hierarchy_parts else "Document"
         
         final_chunks.append({
-            "text": doc.page_content,
+            "text": content,
             "metadata": {
-                "chunk_index": i,
-                "total_chunks": total_chunks,
+                "chunk_index": len(final_chunks),
                 "heading_hierarchy": hierarchy,
             }
         })
+
+    # Обновляем total_chunks после фильтрации
+    total_chunks = len(final_chunks)
+    for chunk in final_chunks:
+        chunk["metadata"]["total_chunks"] = total_chunks
 
     return final_chunks
