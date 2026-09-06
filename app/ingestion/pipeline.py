@@ -46,12 +46,14 @@ async def process_document(file_path: str, doc_id: str, allowed_roles: list[str]
         logger.info(f"Generating embeddings for {len(chunks)} chunks")
         texts_to_embed = [chunk["text"] for chunk in chunks]
         embeddings_client = EmbeddingsClient()
-        embeddings = await embeddings_client.get_embeddings(texts_to_embed)
+        
+        dense_embeddings = await embeddings_client.get_embeddings(texts_to_embed)
+        sparse_embeddings = await embeddings_client.get_sparse_embeddings(texts_to_embed)
         
         # 4. Сохранение в Qdrant
         logger.info("Upserting vectors to Qdrant")
         points = []
-        for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
+        for i, (chunk, d_emb, s_emb) in enumerate(zip(chunks, dense_embeddings, sparse_embeddings)):
             point_id = str(uuid.uuid4())
             
             payload = {
@@ -65,7 +67,11 @@ async def process_document(file_path: str, doc_id: str, allowed_roles: list[str]
                 models.PointStruct(
                     id=point_id,
                     vector={
-                        "": embedding, # Основной dense vector
+                        "": d_emb, # Основной dense vector
+                        "text_sparse": models.SparseVector(
+                            indices=s_emb["indices"],
+                            values=s_emb["values"]
+                        )
                     },
                     payload=payload
                 )
