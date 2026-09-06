@@ -47,4 +47,5 @@ Thumbs.db
 # Jupyter
 .ipynb_checkpoints/
 
-GEMINI.mdscratch/
+GEMINI.md
+scratch/
