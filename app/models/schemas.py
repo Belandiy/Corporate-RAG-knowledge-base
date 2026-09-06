@@ -22,6 +22,7 @@ class SearchRequest(BaseModel):
     query: str
     user_roles: List[str]
     top_k: int = 5
+    rerank: bool = True
 
 class SearchResultItem(BaseModel):
     id: str

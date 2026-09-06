@@ -9,21 +9,31 @@ from app.db.models import Document as DBDocument, DocStatus
 from app.models.schemas import DocumentResponse, UploadResponse, SearchRequest, SearchResponse
 from app.ingestion.pipeline import process_document
 from app.services.retriever import hybrid_search
+from app.services.reranker import Reranker
 from app.core.qdrant import client as qdrant_client, COLLECTION_NAME
 from qdrant_client.http import models
 
 router = APIRouter()
+reranker = Reranker()
 
 @router.post("/search", response_model=SearchResponse)
 async def search_documents(request: SearchRequest):
     """
     Выполняет гибридный поиск по базе Qdrant с учетом ролей пользователя.
+    Опционально применяет CrossEncoder reranker для улучшения релевантности.
     """
+    # Запрашиваем из базы больше кандидатов, если включен реранкер
+    initial_top_k = request.top_k * 3 if request.rerank else request.top_k
+    
     results = await hybrid_search(
         query=request.query,
         user_roles=request.user_roles,
-        top_k=request.top_k
+        top_k=initial_top_k
     )
+    
+    if request.rerank and results:
+        results = await reranker.rerank(query=request.query, docs=results, top_k=request.top_k)
+        
     return SearchResponse(results=results)
 
 UPLOAD_DIR = "/app/data/uploads"

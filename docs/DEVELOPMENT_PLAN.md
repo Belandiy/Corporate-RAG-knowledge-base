@@ -151,7 +151,7 @@
 | Поиск по косинусному сходству | `search()` с `limit=20` (начальная выборка кандидатов) |
 | Pre-filtering по метаданным | Фильтрация по `department`, `document_type`, `tags` через Qdrant Filter API |
 
-### 2.2. Sparse Retrieval (BM25)
+### 2.2. Sparse Retrieval (BM25) [✅ Done]
 **Файл:** `app/services/retriever.py`
 
 | Задача | Детали |
@@ -163,7 +163,7 @@
 
 > **ВАЖНО: Архитектурное решение.** Необходимо определиться между нативными sparse vectors в Qdrant (более production-ready) и in-memory BM25 (проще в реализации, но не масштабируется). Рекомендация: начать с Qdrant native sparse vectors через FastEmbed с моделью `Qdrant/bm25`.
 
-### 2.3. Reciprocal Rank Fusion (RRF)
+### 2.3. Reciprocal Rank Fusion (RRF) [✅ Done]
 **Файл:** `app/services/retriever.py`
 
 | Задача | Детали |
@@ -172,14 +172,14 @@
 | Объединение списков | Merge результатов Dense и Sparse поиска по `point_id` |
 | Сортировка | Отсортировать по RRF-скору, вернуть Top-N (N=10–15) кандидатов для реранкинга |
 
-### 2.4. Cross-Encoder Reranking
+### 2.4. Cross-Encoder Reranking [✅ Done]
 **Файл:** `app/services/reranker.py`
 
 | Задача | Детали |
 |--------|--------|
 | Загрузка reranker-модели | `sentence-transformers` CrossEncoder с `BAAI/bge-reranker-v2-m3` (мультиязычная) |
-| Переранжирование | Вход: (query, candidate_text) пары. Выход: relevance score |
-| Отбор Top-K | Выбрать 3–5 наиболее релевантных чанков из 10–15 RRF-кандидатов |
+| Скорринг пар | Передать пары `(query, chunk_text)` в модель |
+| Пересортировка | Отсортировать RRF-кандидатов по скору reranker'а, оставить `Top-K` (обычно 3–5) |
 | Порог отсечения | Минимальный score для включения в контекст (настраиваемый, default=0.3) |
 
 > **СОВЕТ:** Reranker — самый ресурсоёмкий этап. Для dev-среды на Mac M4 рекомендуется `bge-reranker-v2-m3` (568M). Для продакшена можно переключить на `bge-reranker-large`.
