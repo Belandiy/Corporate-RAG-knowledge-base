@@ -17,3 +17,19 @@ class DocumentResponse(BaseModel):
 class UploadResponse(BaseModel):
     message: str
     document: DocumentResponse
+
+class SearchRequest(BaseModel):
+    query: str
+    user_roles: List[str]
+    top_k: int = 5
+
+class SearchResultItem(BaseModel):
+    id: str
+    score: float
+    text: str
+    doc_id: str
+    chunk_index: int
+    heading_hierarchy: str
+
+class SearchResponse(BaseModel):
+    results: List[SearchResultItem]
