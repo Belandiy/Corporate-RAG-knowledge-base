@@ -1,16 +1,34 @@
+# Stage 1: Сборщик зависимостей
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+
+# Устанавливаем минимальный gcc только на этапе сборки для компиляции PyStemmer (зависимость fastembed)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Создаем изолированное виртуальное окружение
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY requirements.txt .
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt
+
+# Stage 2: Финальный легковесный образ для рантайма
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Копируем и устанавливаем зависимости с использованием BuildKit кэша
-# Пакеты устанавливаются из pre-built wheels, поэтому тяжелые компиляторы (build-essential) не нужны,
-# что экономит ~250 МБ размера образа и ускоряет сборку в разы.
-COPY requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -r requirements.txt
+# Копируем готовое виртуальное окружение без компиляторов и мусора сборки
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Копируем исходный код бэкенда
 COPY app/ ./app/
 COPY .env .env
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
