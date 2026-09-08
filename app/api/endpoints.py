@@ -3,13 +3,15 @@ import shutil
 import uuid
 from typing import List
 from fastapi import APIRouter, Depends, UploadFile, File, Form, BackgroundTasks, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import Document as DBDocument, DocStatus
-from app.models.schemas import DocumentResponse, UploadResponse, SearchRequest, SearchResponse
+from app.models.schemas import DocumentResponse, UploadResponse, SearchRequest, SearchResponse, AskRequest, AskResponse, SearchResultItem
 from app.ingestion.pipeline import process_document
 from app.services.retriever import hybrid_search
 from app.services.reranker import Reranker
+from app.services.generator import generate_answer, generate_answer_stream
 from app.core.qdrant import client as qdrant_client, COLLECTION_NAME
 from qdrant_client.http import models
 
@@ -35,6 +37,45 @@ async def search_documents(request: SearchRequest):
         results = await reranker.rerank(query=request.query, docs=results, top_k=request.top_k)
         
     return SearchResponse(results=results)
+
+@router.post("/ask", response_model=AskResponse)
+async def ask_question(request: AskRequest):
+    """
+    Отвечает на вопрос пользователя на основе документов в базе.
+    Включает гибридный поиск, переранжирование и генерацию (LLM).
+    """
+    # 1. Поиск релевантных чанков (берем топ-8 для реранкера)
+    results = await hybrid_search(
+        query=request.query,
+        user_roles=request.user_roles,
+        top_k=8
+    )
+    
+    if not results:
+        if request.stream:
+            async def empty_stream():
+                yield "Я не нашел информации в доступных документах."
+            return StreamingResponse(empty_stream(), media_type="text/event-stream")
+        return AskResponse(answer="Я не нашел информации в доступных документах.", sources=[])
+        
+    # 2. Переранжирование (оставляем топ-3)
+    results = await reranker.rerank(query=request.query, docs=results, top_k=3)
+    
+    # Форматируем источники для ответа
+    sources = [SearchResultItem(**res) for res in results]
+    
+    # 3. Генерация ответа
+    if request.stream:
+        # Для стриминга мы просто отправляем текст. Источники отправить сложнее, 
+        # обычно их передают в заголовках или спец. SSE-событиях. Для простоты здесь только текст.
+        return StreamingResponse(
+            generate_answer_stream(query=request.query, docs=results),
+            media_type="text/event-stream"
+        )
+    
+    # Без стриминга
+    answer = await generate_answer(query=request.query, docs=results)
+    return AskResponse(answer=answer, sources=sources)
 
 UPLOAD_DIR = "/app/data/uploads"
 # Для локальной разработки создаем папку, если нужно

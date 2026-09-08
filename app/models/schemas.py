@@ -34,3 +34,12 @@ class SearchResultItem(BaseModel):
 
 class SearchResponse(BaseModel):
     results: List[SearchResultItem]
+
+class AskRequest(BaseModel):
+    query: str
+    user_roles: List[str]
+    stream: bool = False
+
+class AskResponse(BaseModel):
+    answer: str
+    sources: List[SearchResultItem]
