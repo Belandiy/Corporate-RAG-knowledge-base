@@ -27,6 +27,7 @@ services:
       # Переопределяем хосты для работы внутри docker network
       - DATABASE_URL=postgresql://rag_user:rag_password@db:5432/rag_db
       - QDRANT_HOST=qdrant
+      - LM_STUDIO_URL=http://host.docker.internal:1234/v1
     volumes:
       - uploads_data:/app/data/uploads
       - fastembed_cache:/root/.cache/fastembed
